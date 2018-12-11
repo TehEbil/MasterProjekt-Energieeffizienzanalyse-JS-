@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="app">
 
 <head>
   <meta charset="utf-8">
@@ -7,17 +7,52 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
   <script src="lib/nv.d3.js"></script>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.5/angular.min.js"></script>
+
   <script src="data/listAll.js"></script>
   <script src="data/hourlyList.js"></script>
   <script src="data/dailyList.js"></script>
+  <script src="data/dailyListCut.js"></script>
   <script src="data/monthlyList.js"></script>
+  <script src="data/monthlyAvgMatrix.js"></script>
   <script src="app.js"></script>
+
 </head>
 
 <body>
-  <div id="chart">
-    <svg style="height: 600px"></svg>
-  </div>
+    <main ng-controller="MainController as vm">
+      <div id="chart">
+        <button ng-repeat="item in [
+            {'key': 'listAll', 'value': 'gesamt'},
+            {'key': 'hourlyList', 'value': 'stündlich'},
+            {'key': 'dailyList', 'value': 'täglich'},
+            {'key': 'dailyListCut', 'value': 'täglich (abgerundet)'},
+            {'key': 'monthlyList', 'value': 'monatlich'}
+        ]" ng-click="vm.changeGraph(item.key)" ng-style="item.key == vm.selected && {'font-weight': 'bold'}" >{{item.value}}</button>
+        Monat von (1-12): <input ng-model="vm.date.dateFrom"> 
+        Monat bis (1-12): <input ng-model="vm.date.dateTo"> 
+        Tag von (1-31): <input ng-model="vm.date.dateDayFrom"> 
+        Tag bis (1-31): <input ng-model="vm.date.dateDayTo"> 
+        <button ng-click="vm.changeGraph(vm.selected)">Suchen</button>
+        <button ng-click="vm.reload()">Reset & Reload</button>
+        <button ng-click="vm.testDriver()">testRandom</button>
+        <button ng-click="vm.testDriver(1)">testFebruar</button>
+        <svg style="height: 600px"></svg>
+      </div>
+
+      <div>
+        <p>Durschschnittliche Abhängigkeit der Monate von den Monaten: </p>
+        <table class=myTable>
+           <tr ng-repeat="(key1, row) in vm.monthlyAvg track by $index">
+              <td ng-repeat="(key2, col) in row track by $index">
+                <span ng-if="key1 == 0 || key2 == 0">{{col}}</span>
+                <span ng-if="key1 != 0 && key2 != 0">{{col | number : 2}}</span>
+              </td>
+           </tr>
+        </table>
+
+      </div>
+    </main>
 </body>
 
 </html>

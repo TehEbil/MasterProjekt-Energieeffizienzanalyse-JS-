@@ -35,10 +35,12 @@ function init() {
 		createListAll(tmpData);
 		createMergedData(tmpData);
 		createHourlyList(tmpData);
-		createDailyList(tmpData);
+        createDailyList(tmpData);
+		createDailyListCut(tmpData);
 
 		var monthlyList = createMonthlyList(tmpData);
-		createMonthlyMatrix(monthlyList);
+        var monthlyMatrix = createMonthlyMatrix(monthlyList);
+		createAvgMonthlyMatrix(monthlyMatrix);
 	});
 }
 
@@ -89,7 +91,7 @@ function createHourlyList(tmpData) {
 	for(let key in tmpData)
 		for(var i = 0; i < tmpData[key].length - 1; i++) {
 			
-			let datax = { time: new Date(generateDate2(tmpData[key][i].Datum, tmpData[key][i].Uhrzeit)).setMinutes(0)};
+			let datax = { time: new Date(new Date(generateDate2(tmpData[key][i].Datum, tmpData[key][i].Uhrzeit)).setMinutes(0))};
 
 
 			val = 0;
@@ -145,6 +147,110 @@ function createDailyList(tmpData) {
 	fs.writeFile("data/dailyList.js", "var dailyList = " + JSON.stringify(dailyList, null, 2), () => {});
 }
 
+function createDailyListCut(tmpData) {
+    var dailyList =  sameDayList(tmpData);
+    fs.writeFile("data/dailyListCut.js", "var dailyListCut = " + JSON.stringify(dailyList, null, 2), () => {});
+}
+
+function sameDayListWithinMonth(tmpData, lower=10, upper=10) {
+
+    for(var i = 0; i < tmpData.length - 1; i++) {
+
+        var date = new Date(generateDate2(tmpData[i].Datum, tmpData[i].Uhrzeit));
+            date.setMinutes(0);
+            date.setHours(0);
+
+        var j, k;
+        j = k = i;
+        for(; j < tmpData.length - 1; j++) {
+            var dateJ = new Date(generateDate2(tmpData[j].Datum, tmpData[j].Uhrzeit));
+                // date.setMinutes(0);
+                // date.setHours(0);
+
+            if(date.getDate() < dateJ.getDate() || date.getMonth() < dateJ.getMonth()) {
+                break;
+            }
+        }
+
+        let valList = [];
+        // hotfix first Loop
+        while(i%j != 0 || i== 0) {
+            let data = tmpData[i];
+            
+            valList.push( {
+                time: new Date(generateDate2(tmpData[i].Datum, tmpData[i].Uhrzeit)),
+                value: data['Wert [kWh]']
+            });
+            i++;
+        }
+
+        valList.sort((a,b) => b.value - a.value);
+        valList = valList.splice(lower, valList.length-lower-upper);
+
+        list[key].push({[date]: valList})
+    }
+    return list;
+}
+
+function sameDayList(tmpData, lower=10, upper=10) {
+    var list = {};
+    var keys = Object.keys(tmpData);
+    for(let key of keys)
+        list[key] = [];
+
+    for(let key in tmpData)
+        // for(let data of tmpData[key]) {
+        for(var i = 0; i < tmpData[key].length - 1; i++) {
+
+            var date = new Date(generateDate2(tmpData[key][i].Datum, tmpData[key][i].Uhrzeit));
+                date.setMinutes(0);
+                date.setHours(0);
+
+
+            let datax = date;
+
+            var j, k;
+            j = k = i;
+            for(; j < tmpData[key].length - 1; j++) {
+                var dateJ = new Date(generateDate2(tmpData[key][j].Datum, tmpData[key][j].Uhrzeit));
+                    // date.setMinutes(0);
+                    // date.setHours(0);
+
+                if(date.getDate() < dateJ.getDate() || date.getMonth() < dateJ.getMonth()) {
+                    break;
+                }
+            }
+
+            let valList = [];
+            // hotfix first Loop
+            while(i%j != 0 || i== 0) {
+                let data = tmpData[key][i];
+                
+                valList.push( {
+                    time: new Date(generateDate2(tmpData[key][i].Datum, tmpData[key][i].Uhrzeit)),
+                    value: data['Wert [kWh]']
+                });
+                i++;
+            }
+
+            valList.sort((a,b) => b.value - a.value);
+            valList = valList.splice(lower, valList.length-lower-upper);
+
+            let val = 0;
+            for(let entry of valList)
+                val += entry.value;
+
+            val = val / valList.length;
+            // datax.list = valList;
+            // list[key].push({[date]: valList})
+            list[key].push({
+                time: date,
+                value: val
+            });
+        }
+    return list;
+}
+
 function createMonthlyList(tmpData) {
 	var monthlyList = {};
 	var keys = Object.keys(tmpData);
@@ -168,8 +274,8 @@ function createMonthlyList(tmpData) {
 			j = k = i;
 			for(; j < tmpData[key].length - 1; j++) {
 				var dateJ = new Date(generateDate2(tmpData[key][j].Datum, tmpData[key][j].Uhrzeit));
-					date.setMinutes(0);
-					date.setHours(0);
+					// date.setMinutes(0);
+					// date.setHours(0);
 
 				if(date.getMonth() < dateJ.getMonth()) {
 					break;
@@ -201,24 +307,50 @@ Number.prototype.toFixedNumber = function(x, base){
 
 function createMonthlyMatrix(monthlyList) {
 
-	var monthlyMatrix = {};
-	var keys = Object.keys(monthlyList);
-	for(let key of keys)
-		monthlyMatrix[key] = [];
+    var monthlyMatrix = {};
+    var keys = Object.keys(monthlyList);
+    for(let key of keys)
+        monthlyMatrix[key] = [];
 
-	var lastDate = undefined;
-	var val = 0;
+    var lastDate = undefined;
+    var val = 0;
 
-	for(let key in monthlyList)
-		for(var i = 0; i < monthlyList[key].length - 1; i++) {
-			monthlyMatrix[key][i] = [];
-			for(var j = 0; j < monthlyList[key].length - 1; j++) {
-				monthlyMatrix[key][i][j] = (monthlyList[key][i].value / monthlyList[key][j].value).toFixedNumber(2);
-			}
-		}
+    for(let key in monthlyList)
+        for(var i = 0; i < monthlyList[key].length; i++) {
+            monthlyMatrix[key][i] = [];
+            for(var j = 0; j < monthlyList[key].length; j++) {
+                monthlyMatrix[key][i][j] = (monthlyList[key][i].value / monthlyList[key][j].value).toFixedNumber(6);
+            }
+        }
 
-	console.log(monthlyMatrix);
-	fs.writeFile("data/monthlyMatrix.js", "var monthlyMatrix = " + JSON.stringify(monthlyMatrix, null, 2), () => {});
+    fs.writeFile("data/monthlyMatrix.js", "var monthlyMatrix = " + JSON.stringify(monthlyMatrix, null, 2), () => {});
+    return monthlyMatrix;
+}
+
+function createAvgMonthlyMatrix(monthlyList) {
+
+    var inputDataLen = Object.keys(monthlyList).length;
+
+    var monthlyAvgMatrix = [];
+    for(var i = 0; i <12; i++) {
+        monthlyAvgMatrix[i] = [];
+        for(var j = 0; j < 12; j++) {
+            monthlyAvgMatrix[i][j] = 0;
+        }
+    }
+
+    for(let key in monthlyList)
+        for(var i = 0; i < monthlyList[key].length; i++)
+            for(var j = 0; j < monthlyList[key].length; j++)
+                monthlyAvgMatrix[i][j] += monthlyList[key][i][j];
+
+    for(var i = 0; i <12; i++)
+        for(var j = 0; j < 12; j++)
+            monthlyAvgMatrix[i][j] = (monthlyAvgMatrix[i][j]/inputDataLen).toFixedNumber(2);
+
+    console.log(monthlyAvgMatrix);
+
+    fs.writeFile("data/monthlyAvgMatrix.js", "var monthlyAvgMatrix = " + JSON.stringify(monthlyAvgMatrix, null, 2), () => {});
 }
 
 function convertData() {
