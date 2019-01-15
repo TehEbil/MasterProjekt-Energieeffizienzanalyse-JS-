@@ -6,8 +6,13 @@
   <link href="lib/nv.d3.css" rel="stylesheet" type="text/css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
   <script src="lib/nv.d3.js"></script>
-
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.5/angular.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/2.5.0/ui-bootstrap-tpls.min.js"></script>
+
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
 
   <script src="data/listAll.js"></script>
   <script src="data/hourlyList.js"></script>
@@ -20,38 +25,29 @@
 </head>
 
 <body>
-    <main ng-controller="MainController as vm">
-      <div id="chart">
-        <button ng-repeat="item in [
-            {'key': 'listAll', 'value': 'gesamt'},
-            {'key': 'hourlyList', 'value': 'stündlich'},
-            {'key': 'dailyList', 'value': 'täglich'},
-            {'key': 'dailyListCut', 'value': 'täglich (abgerundet)'},
-            {'key': 'monthlyList', 'value': 'monatlich'}
-        ]" ng-click="vm.changeGraph(item.key)" ng-style="item.key == vm.selected && {'font-weight': 'bold'}" >{{item.value}}</button>
-        Monat von (1-12): <input ng-model="vm.date.dateFrom"> 
-        Monat bis (1-12): <input ng-model="vm.date.dateTo"> 
-        Tag von (1-31): <input ng-model="vm.date.dateDayFrom"> 
-        Tag bis (1-31): <input ng-model="vm.date.dateDayTo"> 
-        <button ng-click="vm.changeGraph(vm.selected)">Suchen</button>
-        <button ng-click="vm.reload()">Reset & Reload</button>
-        <button ng-click="vm.testDriver()">testRandom</button>
-        <button ng-click="vm.testDriver(1)">testFebruar</button>
-        <svg style="height: 600px"></svg>
-      </div>
 
-      <div>
-        <p>Durschschnittliche Abhängigkeit der Monate von den Monaten: </p>
-        <table class=myTable>
-           <tr ng-repeat="(key1, row) in vm.monthlyAvg track by $index">
-              <td ng-repeat="(key2, col) in row track by $index">
-                <span ng-if="key1 == 0 || key2 == 0">{{col}}</span>
-                <span ng-if="key1 != 0 && key2 != 0">{{col | number : 2}}</span>
-              </td>
-           </tr>
-        </table>
+    <main ng-controller="MainController as vm" class="container mx-auto" style="width: 95%; margin-top: 1em">
+        <div class='btn-toolbar pull-right'>
+            <div class='btn-group'>
+                <button type='button' ng-click="vm.reload()" class='btn btn-primary'>Reset & Reload</button>
+            </div>
+        </div>
 
-      </div>
+        <uib-tabset active="active">
+           <uib-tab index="0" heading="Graph">
+                <chart-table></chart-table>
+            </uib-tab>
+
+            <uib-tab index="1" heading="MonthRelation">
+                <monthly-average data="vm.monthlyAvg"></monthly-average>
+            </uib-tab>
+
+            <uib-tab index="2" heading="Calculator">
+                <strom-calculator></strom-calculator>
+           </uib-tab>
+
+         </uib-tabset>
+
     </main>
 </body>
 
