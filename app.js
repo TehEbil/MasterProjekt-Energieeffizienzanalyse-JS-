@@ -1,4 +1,4 @@
-var app = angular.module('app', ['ui.bootstrap']);
+var app = angular.module('app', ['ui.bootstrap', 'ngSanitize']);
 
 (function() {
     'use strict';
@@ -229,9 +229,10 @@ var app = angular.module('app', ['ui.bootstrap']);
                 </div>
               </form>
 
-              Jährlicher Verbrauch: <strong>{{vm.sum() | currency:'€'}}</strong>
+              Jährlicher Verbrauch: <strong>{{vm.sum() | number:2}}</strong>
               Jährliche Kosten: <strong>{{vm.sum() * 0.3 | currency:'€'}}</strong>
               Monatliche Kosten: <strong>{{vm.sum() * 0.3 / 12 | currency:'€'}}</strong>
+              <p ng-bind-html="vm.monthVerteilung()">hi</p>
                 `
             }
 
@@ -248,6 +249,29 @@ var app = angular.module('app', ['ui.bootstrap']);
         for(let el in vm.config)
             sum += vm.config[el].number * vm.config[el].hours * vm.config[el].verbrauch;
         return sum / 1000 * 365; 
+      }
+
+      vm.monthVerteilung = () => {
+        var sum = vm.sum();
+        var monthly = angular.copy(monthlyAvgMatrix)[0];
+        var newArr = {};
+        for(var key_s in monthly)
+            newArr[key_s] = monthly[key_s] * sum / 12;
+
+        var markup = "";
+        let monthList = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep","Okt", "Nov", "Dez"];
+        for(var i = 0; i < 12; i++) {
+            markup += `
+                <div class="form-row">
+                  <div class="form-group col-md-1">
+                    <label>${monthList[i]}</label><br>
+                    <label>${newArr[i].toFixed(2)}</label>
+                    <!--input type="text" readonly ng-model="newArr[${i}]" min="1" max="6" class="form-control" style="background-color: white"-->
+                  </div>
+                </div>
+            `
+        }
+        return markup;
       }
 
       vm.config = {
