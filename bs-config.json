@@ -1,0 +1,7 @@
+{
+    "files" : "*",
+    "serve" : ".",
+    "https" : false,
+    "browser" : ["chrome"],
+    "open": true
+}

@@ -205,7 +205,7 @@ var app = angular.module('app', ['ui.bootstrap', 'ngSanitize']);
                       <label>Anzahl</label>
                     </div>
                     <div class="form-group col-md-3">
-                      <label>Stunden pro Tag</label>
+                      <label>Zeit pro Tag</label>
                     </div>
 
                     <div class="clearfix"></div>
@@ -213,16 +213,18 @@ var app = angular.module('app', ['ui.bootstrap', 'ngSanitize']);
 
                 <div ng-repeat="(key, value) in vm.config" class="form-row">
                     <div class="form-group col-md-3">
-                      <input type="text" readonly ng-model="key" min="1" max="6" class="form-control" style="background-color: white">
+                      <input type="text" readonly ng-model="key" class="form-control" style="background-color: white">
                     </div>
                     <div class="form-group col-md-3">
-                      <input type="number" ng-model="value.verbrauch"class="form-control">
+                      <input type="number" ng-model="value.verbrauch" min="0" class="form-control">
                     </div>
                     <div class="form-group col-md-3">
-                      <input type="number" ng-model="value.number" min="1" max="20" class="form-control">
+                      <input type="number" ng-model="value.number"  min="0" class="form-control">
                     </div>
                     <div class="form-group col-md-3">
-                      <input type="number" ng-model="value.hours" min="0" max="24" class="form-control">
+                      <input type="number" ng-model="value.hours"  min="0" class="form-control">
+                      <label class="radio-inline"><input type="radio" name="optradio[{{key}}]" id="optradio1" value="1" ng-model="value.timeType">Stunde(n)</label>
+                      <label class="radio-inline"><input type="radio" name="optradio[{{key}}]" id="optradio2" value="60" ng-model="value.timeType">Minute(n)</label>
                     </div>
 
                     <div class="clearfix"></div>
@@ -246,8 +248,11 @@ var app = angular.module('app', ['ui.bootstrap', 'ngSanitize']);
 
       vm.sum = () => {
         var sum = 0;
-        for(let el in vm.config)
-            sum += vm.config[el].number * vm.config[el].hours * vm.config[el].verbrauch;
+        for(let el in vm.config) {
+            if(!vm.config[el].hours)
+                continue;
+            sum += vm.config[el].number * vm.config[el].hours / parseInt(vm.config[el].timeType) * vm.config[el].verbrauch;
+        }
         return sum / 1000 * 365; 
       }
 
@@ -275,21 +280,21 @@ var app = angular.module('app', ['ui.bootstrap', 'ngSanitize']);
       }
 
       vm.config = {
-        "Lampen": { "number": 5, "hours": 6, "verbrauch": 15},
-        "Laptop": { "number": 1, "hours": 2, "verbrauch": 80},
-        "Kühlschrank": { "number": 1, "hours": 24, "verbrauch": 120},
-        "Gefrierschrank": { "number": 1, "hours": 24, "verbrauch": 150},
-        "TV Flachbildschirm": { "number": 1, "hours": 4, "verbrauch": 150},
-        "PC": { "number": 2, "hours": 2, "verbrauch": 200},
-        "Abzugshaube": { "number": 1, "hours": 0.5, "verbrauch": 400},
-        "Mikrowelle": { "number": 1, "hours": 0.1, "verbrauch": 800},
-        "Fön": { "number": 1, "hours": 0.05, "verbrauch": 2000},
-        "Wasserkocher": { "number": 1, "hours": 0.025, "verbrauch": 2200},
-        "Waschmaschine": { "number": 1, "hours": 0.5, "verbrauch": 2000},
-        "Staubsauger": { "number": 1, "hours": 0.5, "verbrauch": 2000},
-        "Wäschetrockner": { "number": 1, "hours": 0.5, "verbrauch": 3000},
-        "Geschirrspülmaschine": { "number": 1, "hours": 0.75, "verbrauch": 2300},
-        "Herd": { "number": 1, "hours": 1, "verbrauch": 3000}
+        "Lampen": { "number": 5, "timeType": "1", "hours": 6, "verbrauch": 15},
+        "Laptop": { "number": 1, "timeType": "1", "hours": 2, "verbrauch": 80},
+        "Kühlschrank": { "number": 1, "timeType": "1", "hours": 24, "verbrauch": 120},
+        "Gefrierschrank": { "number": 1, "timeType": "1", "hours": 24, "verbrauch": 150},
+        "TV Flachbildschirm": { "number": 1, "timeType": "1", "hours": 4, "verbrauch": 150},
+        "PC": { "number": 2, "timeType": "1", "hours": 2, "verbrauch": 200},
+        "Abzugshaube": { "number": 1, "timeType": "60", "hours": 30, "verbrauch": 400},
+        "Mikrowelle": { "number": 1, "timeType": "60", "hours": 5, "verbrauch": 800},
+        "Fön": { "number": 1, "timeType": "60", "hours": 5, "verbrauch": 2000},
+        "Wasserkocher": { "number": 1, "timeType": "60", "hours": 3, "verbrauch": 2200},
+        "Waschmaschine": { "number": 1, "timeType": "1", "hours": 0.5, "verbrauch": 2000},
+        "Staubsauger": { "number": 1, "timeType": "60", "hours": 30, "verbrauch": 2000},
+        "Wäschetrockner": { "number": 1, "timeType": "1", "hours": 0.5, "verbrauch": 3000},
+        "Geschirrspülmaschine": { "number": 1, "timeType": "1", "hours": 0.75, "verbrauch": 2300},
+        "Herd": { "number": 1, "timeType": "60", "hours": 60, "verbrauch": 3000}
       }
 
       vm.$onInit = function() {
