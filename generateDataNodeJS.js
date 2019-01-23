@@ -1,6 +1,18 @@
 'use strict';
 const excelToJson = require('convert-excel-to-json');
 const fs = require('fs');
+const outliers = require('./boxplot.js');
+
+var listxx = [ { time: '2017-12-30T23:15:00.000Z', value: 0.26125 },
+  { time: '2017-12-30T23:30:00.000Z', value: 0.21450000000000002 },
+  { time: '2017-12-30T23:45:00.000Z', value: 0.22275000000000003 },
+  { time: '2017-12-31T00:00:00.000Z', value: 0.198 },
+  { time: '2017-12-31T00:15:00.000Z', value: 0.198 },
+  { time: '2017-12-31T00:30:00.000Z', value: 0.20075 },
+  { time: '2017-12-31T00:45:00.000Z', value: 0.1925 },
+  { time: '2017-12-31T01:00:00.000Z', value: 0.20625000000000002 },
+  { time: '2017-12-31T01:15:00.000Z', value: 0.20350000000000001 },
+  { time: '2017-12-31T01:30:00.000Z', value: 0.24200000000000002 } ];
 
 const CONVERT_DATA = false;		// set to true to generate Data from ExcelFile if not exists
 
@@ -148,8 +160,37 @@ function createDailyList(tmpData) {
 }
 
 function createDailyListCut(tmpData) {
-    var dailyList =  sameDayList(tmpData);
+    var { dailyList, dayKorelationsMatrix } =  sameDayList(tmpData);
     fs.writeFile("data/dailyListCut.js", "var dailyListCut = " + JSON.stringify(dailyList, null, 2), () => {});
+    fs.writeFile("data/dayKorelationsMatrix.js", "var dayKorelationsMatrix = " + JSON.stringify(dayKorelationsMatrix, null, 2), () => {});
+    createAvgdayKorelationsMatrix(dayKorelationsMatrix);
+}
+
+function createAvgdayKorelationsMatrix(dayKorelationsMatrix) {
+
+    var inputDataLen = Object.keys(dayKorelationsMatrix).length;
+    var inputDataArr = Object.keys(dayKorelationsMatrix);
+
+    var dayKorelationsAvgMatrix = [];
+    // var sumArr = [];
+
+    // for(var i = 0; i < 12; i++)
+    //     sumArr[i] = 0;
+
+    // for(var i = 0; i < dayKorelationsMatrix[inputDataArr[1]].length; i++)
+    //     for(var j = 0; j < inputDataLen - 1; j++) 
+    //         // console.log(dayKorelationsMatrix[inputDataArr[j]][i].time.getMonth());
+    //         sumArr[dayKorelationsMatrix[inputDataArr[j]][i].time.getMonth()] += dayKorelationsMatrix[inputDataArr[j]][i].value
+
+    // console.log(sumArr);
+    for(var i = 0; i < dayKorelationsMatrix[inputDataArr[1]].length; i++){
+        let sum = 0;
+        for(var j = 0; j < inputDataLen; j++) 
+            sum += dayKorelationsMatrix[inputDataArr[j]][i].value;
+        dayKorelationsAvgMatrix.push({ time: dayKorelationsMatrix[inputDataArr[1]][i].time, value: sum / inputDataLen} );
+    }
+
+    fs.writeFile("data/dayKorelationsAvgMatrix.js", "var dayKorelationsAvgMatrix = " + JSON.stringify(dayKorelationsAvgMatrix, null, 2), () => {});
 }
 
 function sameDayListWithinMonth(tmpData, lower=10, upper=10) {
@@ -233,8 +274,13 @@ function sameDayList(tmpData, lower=10, upper=10) {
                 i++;
             }
 
-            valList.sort((a,b) => b.value - a.value);
-            valList = valList.splice(lower, valList.length-lower-upper);
+            var val2List = JSON.parse(JSON.stringify(valList));
+
+            // valList.sort((a,b) => b.value - a.value);
+            // valList = valList.splice(lower, valList.length-lower-upper);
+            // console.log("bef:", val2List.length, "aft:", val2List.filter(outliers('value')).length, "aft2:", valList.length);
+            // console.log("2", valList.length)
+            valList = valList.filter(outliers('value'));
 
             let val = 0;
             for(let entry of valList)
@@ -247,8 +293,38 @@ function sameDayList(tmpData, lower=10, upper=10) {
                 time: date,
                 value: val
             });
+
         }
-    return list;
+
+    var dayKorelationsMatrix = {};
+    var sumArr = {};
+
+
+    for(let key of keys) {
+        sumArr[key] = [];
+        for(var i = 0; i < 12; i++)
+            sumArr[key][i] = 0;
+    };
+
+    for(let key of keys) {
+        dayKorelationsMatrix[key] = [];
+
+        for(let day of list[key])
+            sumArr[key][day.time.getMonth()] += day.value;
+
+        for(let day of list[key])
+            dayKorelationsMatrix[key].push({time: day.time, value: day.value / sumArr[key][day.time.getMonth()]});
+            // dayKorelationsMatrix[key].push({time: day.time, value: day.value / daysInMonth(day.time)});
+
+    };
+
+    console.log(sumArr);
+
+    return {dailyList: list, dayKorelationsMatrix};
+}
+
+function daysInMonth (date) {
+    return new Date(date.getFullYear(), date.getMonth()+1, 0).getDate();
 }
 
 function createMonthlyList(tmpData) {

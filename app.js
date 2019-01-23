@@ -64,7 +64,8 @@ var app = angular.module('app', ['ui.bootstrap', 'ngSanitize']);
         .module('app')
         .component('stromCalculator', {
             bindings: {
-                data: '='
+                data: '=',
+                setdata: '='
             },
             controller: StromCalculatorController,
             controllerAs: 'vm',
@@ -78,7 +79,7 @@ var app = angular.module('app', ['ui.bootstrap', 'ngSanitize']);
                   </uib-tab>
 
                   <uib-tab index="2" heading="Erweitert">
-                      <profile></profile>
+                      <profile setdata="vm.setdata"></profile>
                  </uib-tab>
 
                </uib-tabset>
@@ -124,13 +125,13 @@ var app = angular.module('app', ['ui.bootstrap', 'ngSanitize']);
                     <label class="col-md-4">Durchlauferhitzer</label>
                     <div class="col-md-8">
                       <div class="form-check">
-                        <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios1" value="1" ng-model="vm.durchlauferhitzer">
+                        <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios1" value="2" ng-model="vm.durchlauferhitzer">
                         <label class="form-check-label" for="gridRadios1">
                           Ja
                         </label>
                       </div>
                       <div class="form-check">
-                        <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios2" value="2" ng-model="vm.durchlauferhitzer">
+                        <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios2" value="1" ng-model="vm.durchlauferhitzer">
                         <label class="form-check-label" for="gridRadios2">
                           Nein
                         </label>
@@ -174,7 +175,8 @@ var app = angular.module('app', ['ui.bootstrap', 'ngSanitize']);
         .module('app')
         .component('profile', {
             bindings: {
-                data: '='
+                data: '=',
+                setdata: '='
             },
             controller: ProfileController,
             controllerAs: 'vm',
@@ -182,59 +184,110 @@ var app = angular.module('app', ['ui.bootstrap', 'ngSanitize']);
               return `
 
               <br>
-              <form>
-                <!--div class="form-row">
-                    <div class="form-group col-md-4">
-                      <label>Anzahl Personen</label>
-                      <input type="number" ng-model="vm.personsNumber" min="1" max="6" class="form-control">
-                    </div>
-                    <div class="form-group col-md-4">
-                      <label>Anzahl Personen</label>
-                      <input type="number" ng-model="vm.personsNumber" min="1" max="6" class="form-control">
-                    </div>
-                </div-->
+              <uib-tabset active="vm.sactive">
 
-                <div class="form-row">
-                    <div class="form-group col-md-3">
-                      <label>Gerät</label>
-                    </div>
-                    <div class="form-group col-md-3">
-                      <label>Verbrauch</label>
-                    </div>
-                    <div class="form-group col-md-3">
-                      <label>Anzahl</label>
-                    </div>
-                    <div class="form-group col-md-3">
-                      <label>Zeit pro Tag</label>
+                  <uib-tab index="1" heading="Einfach">
+                      <br>
+                      <form>
+                        <div class="form-row">
+                          <div class="form-group col-md-4">
+                            <label>Anzahl Personen</label>
+                            <input type="number" ng-model="vm.personsNumber" min="1" max="6" class="form-control">
+                          </div>
+                        </div>
+                        <fieldset class="form-group col-md-4">
+                          <div class="row">
+                            <label class="col-md-4">Durchlauferhitzer</label>
+                            <div class="col-md-8">
+                              <div class="form-check">
+                                <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios1" value="2" ng-model="vm.durchlauferhitzer">
+                                <label class="form-check-label" for="gridRadios1">
+                                  Ja
+                                </label>
+                              </div>
+                              <div class="form-check">
+                                <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios2" value="1" ng-model="vm.durchlauferhitzer">
+                                <label class="form-check-label" for="gridRadios2">
+                                  Nein
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        </fieldset>
+
+                      </form>
+                    <p ng-if="vm.personsNumber && vm.durchlauferhitzer"> Der Verbrauch liegt bei ca. {{vm.stromverbrauche[vm.personsNumber][vm.durchlauferhitzer]}} kWh </p>
+                    <p ng-if="!vm.personsNumber || !vm.durchlauferhitzer"> Um den Verbrauch zu ermitteln, bitte beide Felder angeben. </p>
+                    
+                  </uib-tab>
+
+                  <uib-tab index="2" heading="Erweitert">
+                  <br>
+                  <form>
+                    <!--div class="form-row">
+                        <div class="form-group col-md-4">
+                          <label>Anzahl Personen</label>
+                          <input type="number" ng-model="vm.personsNumber" min="1" max="6" class="form-control">
+                        </div>
+                        <div class="form-group col-md-4">
+                          <label>Anzahl Personen</label>
+                          <input type="number" ng-model="vm.personsNumber" min="1" max="6" class="form-control">
+                        </div>
+                    </div-->
+
+                    <div class="form-row">
+                        <div class="form-group col-md-3">
+                          <label>Gerät</label>
+                        </div>
+                        <div class="form-group col-md-3">
+                          <label>Verbrauch</label>
+                        </div>
+                        <div class="form-group col-md-3">
+                          <label>Anzahl</label>
+                        </div>
+                        <div class="form-group col-md-3">
+                          <label>Zeit pro Tag</label>
+                        </div>
+
+                        <div class="clearfix"></div>
                     </div>
 
-                    <div class="clearfix"></div>
-                </div>
+                    <div ng-repeat="(key, value) in vm.config" class="form-row">
+                        <div class="form-group col-md-3">
+                          <input type="text" readonly ng-model="key" class="form-control" style="background-color: white">
+                        </div>
+                        <div class="form-group col-md-3">
+                          <input type="number" ng-model="value.verbrauch" min="0" class="form-control">
+                        </div>
+                        <div class="form-group col-md-3">
+                          <input type="number" ng-model="value.number"  min="0" class="form-control">
+                        </div>
+                        <div class="form-group col-md-3">
+                          <input type="number" ng-model="value.hours"  min="0" class="form-control">
+                          <label class="radio-inline"><input type="radio" name="optradio[{{key}}]" id="optradio1" value="1" ng-model="value.timeType">Stunde(n)</label>
+                          <label class="radio-inline"><input type="radio" name="optradio[{{key}}]" id="optradio2" value="60" ng-model="value.timeType">Minute(n)</label>
+                        </div>
 
-                <div ng-repeat="(key, value) in vm.config" class="form-row">
-                    <div class="form-group col-md-3">
-                      <input type="text" readonly ng-model="key" class="form-control" style="background-color: white">
+                        <div class="clearfix"></div>
                     </div>
-                    <div class="form-group col-md-3">
-                      <input type="number" ng-model="value.verbrauch" min="0" class="form-control">
-                    </div>
-                    <div class="form-group col-md-3">
-                      <input type="number" ng-model="value.number"  min="0" class="form-control">
-                    </div>
-                    <div class="form-group col-md-3">
-                      <input type="number" ng-model="value.hours"  min="0" class="form-control">
-                      <label class="radio-inline"><input type="radio" name="optradio[{{key}}]" id="optradio1" value="1" ng-model="value.timeType">Stunde(n)</label>
-                      <label class="radio-inline"><input type="radio" name="optradio[{{key}}]" id="optradio2" value="60" ng-model="value.timeType">Minute(n)</label>
-                    </div>
+                  </form>
+                 </uib-tab>
 
-                    <div class="clearfix"></div>
-                </div>
-              </form>
+               </uib-tabset>
+               <div ng-if="vm.sactive == 1">
+               <br>
+               <br>
+               <br>
+               </div>
 
-              Jährlicher Verbrauch: <strong>{{vm.sum() | number:2}}</strong>
-              Jährliche Kosten: <strong>{{vm.sum() * 0.3 | currency:'€'}}</strong>
-              Monatliche Kosten: <strong>{{vm.sum() * 0.3 / 12 | currency:'€'}}</strong>
-              <p ng-bind-html="vm.monthVerteilung()">hi</p>
+               <div ng-if="vm.personsNumber && vm.durchlauferhitzer && vm.sactive==1 || vm.sactive==2">
+                   Jährlicher Verbrauch: <strong>{{vm.sum() | number:2}}</strong>
+                   Jährliche Kosten: <strong>{{vm.sum() * 0.3 | currency:'€'}}</strong>
+                   Monatliche Kosten: <strong>{{vm.sum() * 0.3 / 12 | currency:'€'}}</strong>
+                   <p ng-bind-html="vm.monthVerteilung()"></p>
+
+                <button type='button' ng-click="vm.visualize()" class='btn btn-primary'>Visualisieren</button>
+               </p>
                 `
             }
 
@@ -247,6 +300,12 @@ var app = angular.module('app', ['ui.bootstrap', 'ngSanitize']);
       var vm = this;
 
       vm.sum = () => {
+        if(vm.sactive == 1)
+            if(vm.stromverbrauche[vm.personsNumber] && vm.stromverbrauche[vm.personsNumber][vm.durchlauferhitzer])
+                return vm.stromverbrauche[vm.personsNumber][vm.durchlauferhitzer];
+            else
+                return false;
+
         var sum = 0;
         for(let el in vm.config) {
             if(!vm.config[el].hours)
@@ -256,12 +315,21 @@ var app = angular.module('app', ['ui.bootstrap', 'ngSanitize']);
         return sum / 1000 * 365; 
       }
 
+      vm.visualize = () => {
+        vm.setdata(calcMonthVerteilung());
+      }
+
+      function calcMonthVerteilung() {
+          var sum = vm.sum();
+          var monthly = angular.copy(monthlyAvgMatrix);
+          var newArr = {};
+          for(var key_s in monthly)
+              newArr[key_s] = monthly[key_s][0] * sum / 12;
+          return newArr;
+      }
+
       vm.monthVerteilung = () => {
-        var sum = vm.sum();
-        var monthly = angular.copy(monthlyAvgMatrix)[0];
-        var newArr = {};
-        for(var key_s in monthly)
-            newArr[key_s] = monthly[key_s] * sum / 12;
+        var newArr =calcMonthVerteilung();
 
         var markup = "";
         let monthList = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep","Okt", "Nov", "Dez"];
@@ -297,6 +365,15 @@ var app = angular.module('app', ['ui.bootstrap', 'ngSanitize']);
         "Herd": { "number": 1, "timeType": "60", "hours": 60, "verbrauch": 3000}
       }
 
+      vm.stromverbrauche = {
+        1: { "1": 1800, "2": 2500},
+        2: { "1": 2700, "2": 3800},
+        3: { "1": 3400, "2": 4900},
+        4: { "1": 4000, "2": 5800},
+        5: { "1": 4600, "2": 6700},
+        6: { "1": 5200, "2": 7600}
+      }
+
       vm.$onInit = function() {
       }
     }
@@ -309,7 +386,8 @@ var app = angular.module('app', ['ui.bootstrap', 'ngSanitize']);
         .module('app')
         .component('chartTable', {
             bindings: {
-                date: "=?"
+                date: "=?",
+                parentObj: "=?"
                 // listObj: "="
             },
             controller: ChartTableController,
@@ -321,13 +399,7 @@ var app = angular.module('app', ['ui.bootstrap', 'ngSanitize']);
                   <!--label class="btn btn-success btn-sm" ng-model="checkModel.right" uib-btn-checkbox>Right</label-->
                 <div class="btn-group">
 
-                    <button ng-repeat="item in [
-                        {'key': 'listAll', 'value': 'gesamt'},
-                        {'key': 'hourlyList', 'value': 'stündlich'},
-                        {'key': 'dailyList', 'value': 'täglich'},
-                        {'key': 'dailyListCut', 'value': 'täglich (round)'},
-                        {'key': 'monthlyList', 'value': 'monatlich'}
-                    ]" ng-click="vm.changeGraph(item.key)" ng-style="item.key == vm.selected && {'font-weight': 'bold'}" class="btn btn-primary">{{item.value}}</button>
+                    <button ng-repeat="item in vm.posLists" ng-click="vm.changeGraph(item.key, undefined, item.custom)" ng-style="item.key == vm.selected && {'font-weight': 'bold'}" class="btn btn-primary">{{item.value}}</button>
                 </div>
 
                 <strong>Monat:</strong> von [1-12] <input ng-model="vm.date.dateFrom" style="width: 35px"> 
@@ -369,14 +441,47 @@ var app = angular.module('app', ['ui.bootstrap', 'ngSanitize']);
               monthlyList
         }
 
+        vm.posLists = [
+            {'key': 'listAll', 'value': 'gesamt'},
+            {'key': 'hourlyList', 'value': 'stündlich'},
+            {'key': 'dailyList', 'value': 'täglich'},
+            {'key': 'dailyListCut', 'value': 'täglich (round)'},
+            {'key': 'monthlyList', 'value': 'monatlich'}
+        ]
+        console.log(vm.parentObj)
+
+        if(vm.parentObj)
+            vm.parentObj.setData = (data) => {
+              console.log("data", data);
+              var dayKorelationsAvgMatrix2 = angular.copy(dayKorelationsAvgMatrix);
+
+              vm.listObj["calculatedDaily"] = angular.copy(vm.listObj["dailyListCut"]);
+              for(let day of dayKorelationsAvgMatrix2) {
+                day.value = day.value * data[new Date(day.time).getMonth()];
+              }
+              vm.listObj["calculatedDaily"]["2017 ohne WP"] = dayKorelationsAvgMatrix2;
+
+              // test
+              // var t = 0;
+              // for(let day of dayKorelationsAvgMatrix) {
+              //   if(new Date(day.time).getMonth() != 0)
+              //       break;
+              //   t += day.value;
+              // }
+
+              vm.posLists.push({'key': 'calculatedDaily', 'value': 'custom', 'custom': true})
+              changeGraph("calculatedDaily", undefined, true);
+            }
+
         init();
       }
 
           vm.changeGraph = changeGraph;
           vm.testDriver = testDriver;
           vm.selected = 'monthlyList';
-          
-          var label = "kWh";
+
+
+          // var label; = "durch. gem. kWh";
 
           ////////////////
 
@@ -384,9 +489,14 @@ var app = angular.module('app', ['ui.bootstrap', 'ngSanitize']);
               changeGraph(vm.selected, vm.date);
           }
 
-          function changeGraph(listStr, date=undefined) {
+          function changeGraph(listStr, date=undefined, custom=false) {
+
               if(date===undefined)
                   date = vm.date;
+
+              let label = (custom) ? "tägl. kW-Verbrauch" : "durch. gem. kWh";
+
+
               vm.selected = listStr;
               var timeFormat = "%d.%m.%Y";
               if(listStr === 'hourlyList' || listStr === 'listAll')
@@ -412,14 +522,19 @@ var app = angular.module('app', ['ui.bootstrap', 'ngSanitize']);
                     return d3.time.format('%d.%m.%Y')(new Date(d))
                   })
 
-
-                chart.yAxis
-                  .axisLabel(label)
-                  .tickFormat(d3.format('.04f'))
-                  ;
+                  if(!custom)
+                    chart.yAxis
+                      .axisLabel(label)
+                      .tickFormat(d3.format('.04f'))
+                      ;
+                  else
+                    chart.yAxis
+                      .axisLabel(label)
+                      .tickFormat(d3.format('.01f'))
+                      ;
 
                 d3.select('#chart svg')
-                  .datum(data(vm.listObj[listStr], date))
+                  .datum(data(vm.listObj[listStr], date, custom))
                   .transition().duration(500)
                   .call(chart)
                   ;
@@ -510,7 +625,7 @@ var app = angular.module('app', ['ui.bootstrap', 'ngSanitize']);
           //     changeGraph("monthlyList", vm.date);
           // }
 
-          function data(list, date) {
+          function data(list, date, custom) {
             var {dateFrom, dateTo, dateDayFrom, dateDayTo} = date;
             dateTo = dateTo - 1;
             dateFrom = dateFrom - 1;
@@ -538,18 +653,30 @@ var app = angular.module('app', ['ui.bootstrap', 'ngSanitize']);
                   year[key].push({ x: dateObj, y: entry.value });
               }
 
-            return [
-              {
-                values: year[keys[0]],
-                key: 'Jahr 2016',
-                color: 'orange'
-              },
-              {
-                values: year[keys[1]],
-                key: 'Jahr 2017',
-                color: 'lightblue'
-              }
-            ];
+              var optList;
+              if(!custom)
+                optList = [
+                  {
+                    values: year[keys[0]],
+                    key: 'Jahr 2016',
+                    color: 'orange'
+                  },
+                  {
+                    values: year[keys[1]],
+                    key: 'Jahr 2017',
+                    color: 'lightblue'
+                  }
+                ]
+              else
+                optList = [
+                  {
+                    values: year[keys[1]],
+                    key: 'Geschätze Daten',
+                    color: 'green'
+                  }
+                ]
+
+            return optList;
           }
 
           var enableZoom = function (chart) {
@@ -623,8 +750,15 @@ var app = angular.module('app', ['ui.bootstrap', 'ngSanitize']);
         var vm = this;
         vm.title = 'MainController';
         vm.reload = reload;
-
+        vm.setData = setData;
+        vm.active = 0;
+        vm.childObj = {}
         init();
+
+        function setData(data) {
+            vm.active = 0;
+            vm.childObj.setData(data);
+        }
 
         function init() {
         }
