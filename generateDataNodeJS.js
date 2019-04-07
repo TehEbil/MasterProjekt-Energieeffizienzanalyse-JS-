@@ -3,60 +3,55 @@ const excelToJson = require('convert-excel-to-json');
 const fs = require('fs');
 const outliers = require('./boxplot.js');
 
-var listxx = [ { time: '2017-12-30T23:15:00.000Z', value: 0.26125 },
-  { time: '2017-12-30T23:30:00.000Z', value: 0.21450000000000002 },
-  { time: '2017-12-30T23:45:00.000Z', value: 0.22275000000000003 },
-  { time: '2017-12-31T00:00:00.000Z', value: 0.198 },
+const CONVERT_DATA = false;		// set to true to generate Data from ExcelFile if not exists
+/* Format entspricht dann:
+[ { time: '2017-12-31T00:00:00.000Z', value: 0.198 },
   { time: '2017-12-31T00:15:00.000Z', value: 0.198 },
   { time: '2017-12-31T00:30:00.000Z', value: 0.20075 },
-  { time: '2017-12-31T00:45:00.000Z', value: 0.1925 },
-  { time: '2017-12-31T01:00:00.000Z', value: 0.20625000000000002 },
-  { time: '2017-12-31T01:15:00.000Z', value: 0.20350000000000001 },
-  { time: '2017-12-31T01:30:00.000Z', value: 0.24200000000000002 } ];
-
-const CONVERT_DATA = false;		// set to true to generate Data from ExcelFile if not exists
-
-/*
-	Berechne kWh pro Stunde, Durchschnitt
-	kWh pro Tag
-	Woche?
-	kWh pro Monat
-	prozentuale Unterschied zw. Monaten & Unterschiedsmatrix ermitteln
+  { time: '2017-12-31T00:45:00.000Z', value: 0.1925 }];
 */
 
-if(CONVERT_DATA) {
-	convertData();
-}
 
 init();
 
 function init() {
+
+    /* ruft alle benötigten Funktionen auf */
+
+    if(CONVERT_DATA) {
+        // konvertiert die excel-tabellen ins .json Format
+        convertData();
+    }
+
 	fs.readFile("data/data.json", function( err, data ) {
 		if(err)
 			return console.log("FEHLER bei init: backup datei konnte nicht gelesen werden!")
 		
 		var tmpData = JSON.parse(data);
 		
-		// delete unnecessary excel line:
+		// lösche von jedem Datensatz die erste und letzte unnötige Excel-Spalte:
+        // zwei Dimensional, da mehrere Lastgänge / Jahre
 		var keys = Object.keys(tmpData);
 		for(let key of keys) {
 			tmpData[key].splice(0, 1);
 			tmpData[key].splice(tmpData[key].length-1, 1);
 		}
 
+        // Zum Erstellen und Abspeichern von Listen
 		createListAll(tmpData);
 		createMergedData(tmpData);
 		createHourlyList(tmpData);
         createDailyList(tmpData);
-		createDailyListCut(tmpData);
+		createDailyListCut(tmpData); //zusätzlich durch BoxPlot Algorithmus gerundet
 
 		var monthlyList = createMonthlyList(tmpData);
         var monthlyMatrix = createMonthlyMatrix(monthlyList);
-		createAvgMonthlyMatrix(monthlyMatrix);
+		createAvgMonthlyMatrix(monthlyMatrix); // Durchschnitt aller Monatsmatrizen
 	});
 }
 
 function createListAll(tmpData) {
+    // Alle Werte eines Lastganges in einer Liste
 	var listAll = {};
 	var keys = Object.keys(tmpData);
 	for(let key of keys)
@@ -104,7 +99,6 @@ function createHourlyList(tmpData) {
 		for(var i = 0; i < tmpData[key].length - 1; i++) {
 			
 			let datax = { time: new Date(new Date(generateDate2(tmpData[key][i].Datum, tmpData[key][i].Uhrzeit)).setMinutes(0))};
-
 
 			val = 0;
 			// hotfix first Loop
@@ -172,17 +166,7 @@ function createAvgdayKorelationsMatrix(dayKorelationsMatrix) {
     var inputDataArr = Object.keys(dayKorelationsMatrix);
 
     var dayKorelationsAvgMatrix = [];
-    // var sumArr = [];
 
-    // for(var i = 0; i < 12; i++)
-    //     sumArr[i] = 0;
-
-    // for(var i = 0; i < dayKorelationsMatrix[inputDataArr[1]].length; i++)
-    //     for(var j = 0; j < inputDataLen - 1; j++) 
-    //         // console.log(dayKorelationsMatrix[inputDataArr[j]][i].time.getMonth());
-    //         sumArr[dayKorelationsMatrix[inputDataArr[j]][i].time.getMonth()] += dayKorelationsMatrix[inputDataArr[j]][i].value
-
-    // console.log(sumArr);
     for(var i = 0; i < dayKorelationsMatrix[inputDataArr[1]].length; i++){
         let sum = 0;
         for(var j = 0; j < inputDataLen; j++) 
@@ -205,8 +189,6 @@ function sameDayListWithinMonth(tmpData, lower=10, upper=10) {
         j = k = i;
         for(; j < tmpData.length - 1; j++) {
             var dateJ = new Date(generateDate2(tmpData[j].Datum, tmpData[j].Uhrzeit));
-                // date.setMinutes(0);
-                // date.setHours(0);
 
             if(date.getDate() < dateJ.getDate() || date.getMonth() < dateJ.getMonth()) {
                 break;
@@ -240,7 +222,6 @@ function sameDayList(tmpData, lower=10, upper=10) {
         list[key] = [];
 
     for(let key in tmpData)
-        // for(let data of tmpData[key]) {
         for(var i = 0; i < tmpData[key].length - 1; i++) {
 
             var date = new Date(generateDate2(tmpData[key][i].Datum, tmpData[key][i].Uhrzeit));
@@ -254,8 +235,6 @@ function sameDayList(tmpData, lower=10, upper=10) {
             j = k = i;
             for(; j < tmpData[key].length - 1; j++) {
                 var dateJ = new Date(generateDate2(tmpData[key][j].Datum, tmpData[key][j].Uhrzeit));
-                    // date.setMinutes(0);
-                    // date.setHours(0);
 
                 if(date.getDate() < dateJ.getDate() || date.getMonth() < dateJ.getMonth()) {
                     break;
@@ -263,7 +242,6 @@ function sameDayList(tmpData, lower=10, upper=10) {
             }
 
             let valList = [];
-            // hotfix first Loop
             while(i%j != 0 || i== 0) {
                 let data = tmpData[key][i];
                 
@@ -275,11 +253,6 @@ function sameDayList(tmpData, lower=10, upper=10) {
             }
 
             var val2List = JSON.parse(JSON.stringify(valList));
-
-            // valList.sort((a,b) => b.value - a.value);
-            // valList = valList.splice(lower, valList.length-lower-upper);
-            // console.log("bef:", val2List.length, "aft:", val2List.filter(outliers('value')).length, "aft2:", valList.length);
-            // console.log("2", valList.length)
             valList = valList.filter(outliers('value'));
 
             let val = 0;
@@ -287,8 +260,7 @@ function sameDayList(tmpData, lower=10, upper=10) {
                 val += entry.value;
 
             val = val / valList.length;
-            // datax.list = valList;
-            // list[key].push({[date]: valList})
+
             list[key].push({
                 time: date,
                 value: val
@@ -314,7 +286,6 @@ function sameDayList(tmpData, lower=10, upper=10) {
 
         for(let day of list[key])
             dayKorelationsMatrix[key].push({time: day.time, value: day.value / sumArr[key][day.time.getMonth()]});
-            // dayKorelationsMatrix[key].push({time: day.time, value: day.value / daysInMonth(day.time)});
 
     };
 
@@ -337,7 +308,6 @@ function createMonthlyList(tmpData) {
 	var val = 0;
 
 	for(let key in tmpData)
-		// for(let data of tmpData[key]) {
 		for(var i = 0; i < tmpData[key].length - 1; i++) {
 
 			var date = new Date(generateDate2(tmpData[key][i].Datum, tmpData[key][i].Uhrzeit));
@@ -350,8 +320,6 @@ function createMonthlyList(tmpData) {
 			j = k = i;
 			for(; j < tmpData[key].length - 1; j++) {
 				var dateJ = new Date(generateDate2(tmpData[key][j].Datum, tmpData[key][j].Uhrzeit));
-					// date.setMinutes(0);
-					// date.setHours(0);
 
 				if(date.getMonth() < dateJ.getMonth()) {
 					break;
@@ -457,7 +425,7 @@ function generateDate2(dateStr, timeStr) {
 	
 	var parts = timeStr.split(':');
 	
-	// fix für 00:00
+	// fix für 00:00, da es bereits der neue Tag ist, Daten aber noch zum Alten gehören
 	if(parts[0] == 0 && parts[1] == 0)
 		parts[0] = 24;
 	
