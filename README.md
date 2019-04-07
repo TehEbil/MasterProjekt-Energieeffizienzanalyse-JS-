@@ -23,14 +23,14 @@
 
 ### Getting Started
 
-Für das Projekt wird lediglich <a href="https://nodejs.org/en/">nodejs</a> in einer version größer 8 benötigt und ein modernerer Browser (Chrome, Edge, Firefox, ...). Internet Explorer wird nicht unterstützt!
+Für das Projekt wird lediglich <a href="https://nodejs.org/en/">nodejs</a> in einer version größer 8 benötigt und ein modernerer Browser (Chrome, Edge, Firefox, etc). Internet Explorer wird nicht unterstützt!
 
 Dabei besteht dieses Projekt aus zwei Teilen: dem Generierungsteil, um Daten zu erstellen, und den Visualisierungsteil, um die Daten anzuzeigen.
 Ersteres wird durch die generateDataNodeJS.js Datei erledigt, sie wird durch nodejs aufgerufen. Der zweite Teil kann ganz normal in einem Browser durch ein Doppelklick geöffnet werden, er ist also auch portabel, wenn man die benötigten data-files mit distributiert. Die index.html Datei bildet bis auf kleine Ausnahmen, nur die Sicht ab und lädt die benötigten Dateien. Die app.js Datei zum Beispiel wird ebenfalls inkludiert. In ihr befindet sich die Applikationslogik. Hier kann man Voreinstellungen ändern, wie z.B. den Strompreis, der mit 0.30€ angesetzt wurde.
 
 ### Clone
 
-- Um das Projekt zu clonen, einfach den folgenden Pfad dafür benutzen: `https://github.com/TehEbil/MasterProjekt-Energieeffizienzanalyse-JS-.git`
+Um das Projekt zu clonen, einfach den folgenden Pfad dafür benutzen: `https://github.com/TehEbil/MasterProjekt-Energieeffizienzanalyse-JS-.git`
 
 ### Setup
 
